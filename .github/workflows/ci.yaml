@@ -1,0 +1,43 @@
+name: Exception-Handling-Spring-Boot-Starter CI
+
+on:
+  pull_request:
+    branches: ["main"]
+
+concurrency:
+  group: ci-${{ github.ref }} # one group per branch/PR
+  cancel-in-progress: true    # a new run cancels the old one in the same group
+
+jobs:
+  verify:
+    name: Build, Test, Analyze
+    permissions:
+      contents: read
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7     # download the repo onto the runner
+        with:
+          fetch-depth: 0              # full git history (Sonar needs it)
+      - uses: actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6  #v5   # install Java
+        with:
+          distribution: temurin
+          java-version: "25"
+          cache: maven            # cache Maven dependencies
+
+      - run: chmod +x mvnw        # make the Maven wrapper executable
+
+      - name: Build
+        run: ./mvnw -B -ntp -DskipTests package
+
+      - name: Test
+        run: ./mvnw -B -ntp test
+
+      - name: SonarQube analysis
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: >
+          ./mvnw -B -ntp
+          org.sonarsource.scanner.maven:sonar-maven-plugin:sonar
+          -Dsonar.host.url=https://sonarcloud.io
+          -Dsonar.projectKey=Khinya-Khinev_Exception-Handling-Spring-Boot-Starter
+          -Dsonar.organization=khinya-organisation
