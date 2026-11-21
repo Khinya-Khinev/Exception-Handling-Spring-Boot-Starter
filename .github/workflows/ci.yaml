@@ -2,7 +2,7 @@ name: Exception-Handling-Spring-Boot-Starter CI
 
 on:
   push:
-    branches: ["main"]
+    branches: ["main", "core-starter"]
   pull_request:
     branches: ["main"]
 
@@ -13,6 +13,8 @@ concurrency:
 jobs:
   verify:
     name: Build, Test, Analyze
+    permissions:
+      contents: read
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7     # download the repo onto the runner
@@ -41,44 +43,3 @@ jobs:
           org.sonarsource.scanner.maven:sonar-maven-plugin:sonar
           -Dsonar.projectKey=Khinya-Khinev_Exception-Handling-Spring-Boot-Starter
           -Dsonar.organization=khinya-organisation
-
-  docker:
-    name: Docker image
-    needs: verify
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main' # build and push the image only after merging into main
-    runs-on: ubuntu-24.04
-
-    permissions:
-      contents: read   # lets the job download sources
-      packages: write  # lets the job push images to GitHub Container Registry
-
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 #v7
-
-      - run: chmod +x mvnw
-
-      - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 #v4
-
-      - uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f #v4
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Image metadata
-        id: meta
-        uses: docker/metadata-action@dc802804100637a589fabce1cb79ff13a1411302 #v6
-        with:
-          images: ghcr.io/${{ github.repository }}
-          # creating tags
-          tags: |
-            type=sha
-            type=ref,event=branch 
-
-      - name: Build and push
-        uses: docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a # v7
-        with:
-          context: .
-          push: true
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
