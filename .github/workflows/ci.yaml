@@ -1,8 +1,6 @@
 name: Exception-Handling-Spring-Boot-Starter CI
 
 on:
-  push:
-    branches: ["main", "core-starter"]
   pull_request:
     branches: ["main"]
 
