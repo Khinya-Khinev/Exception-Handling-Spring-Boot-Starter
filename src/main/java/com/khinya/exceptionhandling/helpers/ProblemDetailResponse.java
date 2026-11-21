@@ -1,6 +1,7 @@
 package com.khinya.exceptionhandling.helpers;
 
 import jakarta.servlet.http.HttpServletRequest;
+import lombok.experimental.UtilityClass;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ProblemDetail;
@@ -14,7 +15,8 @@ import java.util.Optional;
 import java.util.Set;
 
 @Slf4j
-public final class ProblemDetailFactory {
+@UtilityClass
+public final class ProblemDetailResponse {
 
     private static final URI DEFAULT_TYPE = URI.create("about:blank");
     private static final Set<String> RESERVED_KEYS = Set.of(
@@ -22,7 +24,7 @@ public final class ProblemDetailFactory {
             "timestamp", "error_code", "invalid_params"
     );
 
-    public ProblemBuilder problem(HttpStatusCode status, String errorCode, String title) {
+    public static ProblemBuilder of(HttpStatusCode status, String errorCode, String title) {
         ProblemDetail pd = ProblemDetail.forStatus(status);
         pd.setType(DEFAULT_TYPE);
         pd.setTitle(title);
@@ -34,7 +36,7 @@ public final class ProblemDetailFactory {
         return new ProblemBuilder(pd);
     }
 
-    private Optional<URI> resolveInstance() {
+    private static Optional<URI> resolveInstance() {
         if (RequestContextHolder.getRequestAttributes() instanceof ServletRequestAttributes attrs) {
             HttpServletRequest request = attrs.getRequest();
 
@@ -80,7 +82,6 @@ public final class ProblemDetailFactory {
                 return this;
             }
             if (RESERVED_KEYS.contains(key)) {
-                log.warn("Ignoring reserved ProblemDetail property '{}'", key);
                 return this;
             }
             pd.setProperty(key, value);

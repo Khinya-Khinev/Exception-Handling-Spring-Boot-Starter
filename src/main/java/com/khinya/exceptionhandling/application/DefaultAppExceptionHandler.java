@@ -1,9 +1,8 @@
 package com.khinya.exceptionhandling.application;
 
-import com.khinya.exceptionhandling.helpers.ProblemDetailFactory;
+import com.khinya.exceptionhandling.helpers.ProblemDetailResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.NonNull;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.context.MessageSourceAware;
 import org.springframework.context.i18n.LocaleContextHolder;
@@ -15,17 +14,11 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 @RestControllerAdvice
 public class DefaultAppExceptionHandler implements MessageSourceAware {
 
-    protected ProblemDetailFactory factory;
     private MessageSource messageSource;
 
     @Override
     public void setMessageSource(@NonNull MessageSource messageSource) {
         this.messageSource = messageSource;
-    }
-
-    @Autowired
-    public final void setProblemDetailFactory(ProblemDetailFactory factory) {
-        this.factory = factory;
     }
 
     @ExceptionHandler(AppException.class)
@@ -36,12 +29,9 @@ public class DefaultAppExceptionHandler implements MessageSourceAware {
         if (errorCode.getHttpStatus().is5xxServerError()) {
             log.error("Business exception: {}. Code: {}. Context: {}",
                     ex.getMessage(), code, ex.getErrorContext(), ex);
-        } else {
-            log.warn("Business exception: {}. Code: {}. Context: {}",
-                    ex.getMessage(), code, ex.getErrorContext());
         }
 
-        return factory.problem(errorCode.getHttpStatus(), code, resolveTitle(code))
+        return ProblemDetailResponse.of(errorCode.getHttpStatus(), code, resolveTitle(code))
                 .withAll(ex.getErrorContext())
                 .build();
     }

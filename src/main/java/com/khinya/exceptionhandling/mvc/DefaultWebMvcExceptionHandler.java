@@ -1,11 +1,9 @@
 package com.khinya.exceptionhandling.mvc;
 
-import com.khinya.exceptionhandling.helpers.ProblemDetailFactory;
-import lombok.RequiredArgsConstructor;
+import com.khinya.exceptionhandling.helpers.ProblemDetailResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ProblemDetail;
@@ -27,13 +25,6 @@ public class DefaultWebMvcExceptionHandler extends ResponseEntityExceptionHandle
     private static final String VALIDATION_TITLE = "Validation failed";
     private static final String VALIDATION_DETAIL = "One or more fields failed validation";
 
-    protected ProblemDetailFactory factory;
-
-    @Autowired
-    public final void setProblemDetailFactory(ProblemDetailFactory factory) {
-        this.factory = factory;
-    }
-
     @Override
     protected @Nullable ResponseEntity<Object> handleMethodArgumentNotValid(
             @NonNull MethodArgumentNotValidException ex,
@@ -41,10 +32,7 @@ public class DefaultWebMvcExceptionHandler extends ResponseEntityExceptionHandle
             @NonNull HttpStatusCode status,
             @NonNull WebRequest request
     ) {
-        log.warn("Handling method argument not valid exception: {}. Errors: {}",
-                ex.getMessage(), ex.getBindingResult().getFieldErrors(), ex);
-
-        ProblemDetail problemDetail = factory.problem(status, VALIDATION_ERROR_CODE, VALIDATION_TITLE)
+        ProblemDetail problemDetail = ProblemDetailResponse.of(status, VALIDATION_ERROR_CODE, VALIDATION_TITLE)
                 .detail(VALIDATION_DETAIL)
                 .invalidParams(extractErrors(ex))
                 .build();
