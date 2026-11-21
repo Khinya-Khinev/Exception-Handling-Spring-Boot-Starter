@@ -10,9 +10,8 @@ import java.time.Instant;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.entry;
 
-class ErrorProblemDetailResponseTest {
+class ProblemDetailResponseTest {
 
     @Nested
     class Of {
@@ -28,9 +27,9 @@ class ErrorProblemDetailResponseTest {
             assertThat(result.getTitle()).isEqualTo("Bad Request");
             assertThat(result.getType()).isEqualTo(URI.create("about:blank"));
             assertThat(result.getProperties())
-                    .contains(entry("error_code", "BAD_REQUEST"))
+                    .containsEntry("error_code", "BAD_REQUEST")
                     .containsKey("timestamp");
-            assertThat(result.getProperties().get("timestamp")).isInstanceOf(Instant.class);
+            assertThat(result.getProperties()).extractingByKey("timestamp").isInstanceOf(Instant.class);
         }
     }
 
@@ -98,11 +97,7 @@ class ErrorProblemDetailResponseTest {
                     .invalidParams(params)
                     .build();
 
-            Map<String, Object> properties = result.getProperties();
-            assertThat(properties)
-                    .isNotNull()
-                    .containsKey("invalid_params");
-            assertThat(properties.get("invalid_params")).isEqualTo(params);
+            assertThat(result.getProperties()).containsEntry("invalid_params", params);
         }
 
         @Test
@@ -133,7 +128,7 @@ class ErrorProblemDetailResponseTest {
                     .with("trace_id", "abc-123")
                     .build();
 
-            assertThat(result.getProperties()).contains(entry("trace_id", "abc-123"));
+            assertThat(result.getProperties()).containsEntry("trace_id", "abc-123");
         }
 
         @Test
@@ -142,7 +137,7 @@ class ErrorProblemDetailResponseTest {
                     .with(null, "value")
                     .build();
 
-            assertThat(result.getProperties()).doesNotContain(entry(null, "value"));
+            assertThat(result.getProperties()).doesNotContainEntry(null, "value");
         }
 
         @Test
@@ -151,7 +146,7 @@ class ErrorProblemDetailResponseTest {
                     .with("", "value")
                     .build();
 
-            assertThat(result.getProperties()).doesNotContain(entry("", "value"));
+            assertThat(result.getProperties()).doesNotContainEntry("", "value");
         }
 
         @Test
@@ -185,11 +180,10 @@ class ErrorProblemDetailResponseTest {
             assertThat(result.getType()).isEqualTo(URI.create("about:blank"));
             assertThat(result.getDetail()).isNull();
             assertThat(result.getProperties())
-                    .containsEntry("error_code", "ERR");
-            assert result.getProperties() != null;
-            assertThat(result.getProperties().get("timestamp"))
+                    .containsEntry("error_code", "ERR")
+                    .doesNotContainKey("invalid_params");
+            assertThat(result.getProperties()).extractingByKey("timestamp")
                     .isInstanceOf(Instant.class);
-            assertThat(result.getProperties()).doesNotContainKey("invalid_params");
         }
     }
 
@@ -208,9 +202,9 @@ class ErrorProblemDetailResponseTest {
                     .build();
 
             assertThat(result.getProperties())
-                    .contains(entry("trace_id", "abc-123"))
-                    .contains(entry("retryable", true))
-                    .contains(entry("retry_after_ms", 5000));
+                    .containsEntry("trace_id", "abc-123")
+                    .containsEntry("retryable", true)
+                    .containsEntry("retry_after_ms", 5000);
         }
 
         @Test
@@ -226,7 +220,7 @@ class ErrorProblemDetailResponseTest {
 
             assertThat(result.getType()).isEqualTo(URI.create("about:blank"));
             assertThat(result.getProperties())
-                    .contains(entry("trace_id", "xyz-789"))
+                    .containsEntry("trace_id", "xyz-789")
                     .doesNotContainKey("type")
                     .doesNotContainKey("status");
         }
@@ -237,7 +231,7 @@ class ErrorProblemDetailResponseTest {
                     .withAll(null)
                     .build();
 
-            assertThat(result.getProperties()).containsKey("error_code");
+            assertThat(result.getProperties()).containsEntry("error_code", "ERR");
         }
 
         @Test
@@ -246,7 +240,7 @@ class ErrorProblemDetailResponseTest {
                     .withAll(Map.of())
                     .build();
 
-            assertThat(result.getProperties()).containsKey("error_code");
+            assertThat(result.getProperties()).containsEntry("error_code", "ERR");
         }
     }
 
@@ -290,12 +284,12 @@ class ErrorProblemDetailResponseTest {
             assertThat(result.getDetail()).isEqualTo("The request contains invalid fields");
             assertThat(result.getType()).isEqualTo(customType);
             assertThat(result.getProperties())
-                    .contains(entry("error_code", "VALIDATION"))
+                    .containsEntry("error_code", "VALIDATION")
                     .containsKey("timestamp")
-                    .contains(entry("invalid_params", invalidParams))
-                    .contains(entry("request_id", "req-789"))
-                    .contains(entry("trace_id", "abc-123"))
-                    .contains(entry("correlation_id", "def-456"));
+                    .containsEntry("invalid_params", invalidParams)
+                    .containsEntry("request_id", "req-789")
+                    .containsEntry("trace_id", "abc-123")
+                    .containsEntry("correlation_id", "def-456");
         }
     }
 }
